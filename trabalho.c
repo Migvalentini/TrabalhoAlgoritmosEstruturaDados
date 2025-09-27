@@ -3,82 +3,97 @@
 #include <stdlib.h>
 
 #define N 30
-struct estudante {
+
+typedef struct atividade {
+    char nome[N];
+    char local[N];
+    int quantidade;
+    struct inscrito *inscritos;
+    struct atividade *prox;
+} Atividade;
+
+typedef struct estudante {
     int codigo;
     char nome[N];
     char curso[N];
     struct estudante *prox;
-}; typedef struct estudante Estudante;
+    Atividade *atividade;
+} Estudante;
 
-struct inscrito {
+typedef struct inscrito {
     Estudante *estudante;
     struct inscrito *prox;
-}; typedef struct inscrito Inscrito;
+} Inscrito;
 
-struct headerestudante {
-    struct estudante *ultimoInserido;
-}; typedef struct headerestudante HeaderEstudante;
+typedef struct headerestudante {
+    Estudante *ultimoInserido;
+    Estudante *estudantes;
+} HeaderEstudante;
 
-struct atividade {
-    char nome[N];
-    char local[N];
-    struct inscrito *estudantes;
-    struct atividade *prox;
-}; typedef struct atividade Atividade;
-
-struct headeragenda {
+typedef struct headeragenda {
     char data[N];
     char horario[N];
     struct atividade *atividades;
-}; typedef struct headeragenda HeaderAgenda;
+} HeaderAgenda;
 
-Estudante *estudantes;
-HeaderEstudante *headerestudante;
-HeaderAgenda *headeragenda;
+HeaderAgenda headeragenda;
+HeaderEstudante headerestudante;
+
+void inicializar() {
+    headerestudante.ultimoInserido = NULL;
+    headerestudante.estudantes = NULL;
+
+    strcpy(headeragenda.data, "25/09/2025");
+    strcpy(headeragenda.horario, "10h");
+    headeragenda.atividades = NULL;
+}
 
 void inserirEstudante(char nome[N], char curso[N]) {
-    Estudante *novo, *aux = estudantes, *ant = estudantes;
+    Estudante *novo;
 
     novo = (Estudante*)malloc(sizeof(Estudante));
     strcpy(novo->nome, nome);
     strcpy(novo->curso, curso);
     novo->prox = NULL;
+    novo->atividade = NULL;
     
-    if(estudantes==NULL) {
+    if(headerestudante.estudantes==NULL) {
         novo->codigo = 0;
-        estudantes = novo;
-        headerestudante->ultimoInserido = novo;
-    } else if(strcmp(novo->nome, estudantes->nome) < 0) {
-        novo->prox = estudantes;
-        novo->codigo = headerestudante->ultimoInserido->codigo + 1;
-        estudantes = novo;
-        headerestudante->ultimoInserido = novo;
+        headerestudante.estudantes = novo;
+        headerestudante.ultimoInserido = novo;
+    } else if(strcmp(novo->nome, headerestudante.estudantes->nome) <= 0) {
+        novo->prox = headerestudante.estudantes;
+        novo->codigo = headerestudante.ultimoInserido->codigo + 1;
+        headerestudante.estudantes = novo;
+        headerestudante.ultimoInserido = novo;
     } else {
-        while (aux != NULL && strcmp(aux->nome, novo->nome) < 0 ){
+        Estudante *aux = headerestudante.estudantes, *ant = headerestudante.estudantes;
+
+        while (aux != NULL && strcmp(aux->nome, novo->nome) < 0 ) {
             ant = aux;
             aux = aux->prox;
         }
         ant->prox = novo;
         novo->prox = aux;
-        novo->codigo = headerestudante->ultimoInserido->codigo + 1;
-        headerestudante->ultimoInserido = novo;
+        novo->codigo = headerestudante.ultimoInserido->codigo + 1;
+        headerestudante.ultimoInserido = novo;
     }
 }
 
 void removerEstudante(int codigo, char nome[N]) {
-    if(estudantes == NULL) { //Lista vazia
+    if(headerestudante.estudantes == NULL) { //Lista vazia
         return;
     }
 
-    if(estudantes->prox == NULL && (estudantes->codigo == codigo || strcmp(estudantes->nome, nome) == 0)) { //Primeiro e Único
-        free(estudantes);
-        estudantes = NULL;
-    } else if(estudantes->codigo == codigo || strcmp(estudantes->nome, nome) == 0) { //Primeiro, mas não único
-        Estudante *aux=estudantes;
-        estudantes = estudantes->prox;
+    if(headerestudante.estudantes->prox == NULL && (headerestudante.estudantes->codigo == codigo || strcmp(headerestudante.estudantes->nome, nome) == 0)) { //Primeiro e Único
+        free(headerestudante.estudantes);
+        headerestudante.estudantes = NULL;
+    } else if(headerestudante.estudantes->codigo == codigo || strcmp(headerestudante.estudantes->nome, nome) == 0) { //Primeiro, mas não único
+        Estudante *aux=headerestudante.estudantes;
+        headerestudante.estudantes = headerestudante.estudantes->prox;
         free(aux);
     } else { //Remove Meio ou Último
-        Estudante *aux=estudantes, *ant=estudantes;
+        Estudante *aux=headerestudante.estudantes, *ant=headerestudante.estudantes;
         while (aux != NULL && strcmp(aux->nome, nome) != 0 && aux->codigo != codigo) { 
             ant = aux;
             aux = aux->prox;
@@ -91,7 +106,7 @@ void removerEstudante(int codigo, char nome[N]) {
 }
 
 void consultarTodosEstudantes() {
-    Estudante *aux = estudantes;
+    Estudante *aux = headerestudante.estudantes;
     
     printf("\nLista de Estudantes:\n");
     while(aux != NULL) {
@@ -106,28 +121,29 @@ void inserirAtividade(char nome[N], char local[N]) {
     novo = (Atividade*)malloc(sizeof(Atividade));
     strcpy(novo->nome, nome);
     strcpy(novo->local, local);
+    novo->quantidade = 0;
     
-    if(headeragenda->atividades==NULL) {
+    if(headeragenda.atividades==NULL) {
         novo->prox = NULL;
     } else {
-        novo->prox = headeragenda->atividades;
+        novo->prox = headeragenda.atividades;
     }
-    headeragenda->atividades = novo;
+    headeragenda.atividades = novo;
 }
 
 void removerAtividade(char nome[N]) {
-    if(headeragenda->atividades == NULL) { //Lista vazia
+    if(headeragenda.atividades == NULL) { //Lista vazia
         return;
     }
-    if(headeragenda->atividades->prox == NULL && strcmp(headeragenda->atividades->nome, nome) == 0) { //Primeiro e Único
-        free(headeragenda->atividades);
-        headeragenda->atividades = NULL;
-    } else if(strcmp(headeragenda->atividades->nome, nome) == 0) { //Primeiro, mas não único
-        Atividade *aux=headeragenda->atividades;
-        headeragenda->atividades = headeragenda->atividades->prox;
+    if(headeragenda.atividades->prox == NULL && strcmp(headeragenda.atividades->nome, nome) == 0) { //Primeiro e Único
+        free(headeragenda.atividades);
+        headeragenda.atividades = NULL;
+    } else if(strcmp(headeragenda.atividades->nome, nome) == 0) { //Primeiro, mas não único
+        Atividade *aux=headeragenda.atividades;
+        headeragenda.atividades = headeragenda.atividades->prox;
         free(aux);
     } else { //Remove Meio ou Último
-        Atividade *aux=headeragenda->atividades, *ant=headeragenda->atividades;
+        Atividade *aux=headeragenda.atividades, *ant=headeragenda.atividades;
         while (aux != NULL && strcmp(aux->nome, nome) != 0) { 
             ant = aux;
             aux = aux->prox;
@@ -140,7 +156,7 @@ void removerAtividade(char nome[N]) {
 }
 
 void consultarTodasAtividades() {
-    Atividade *aux = headeragenda->atividades;
+    Atividade *aux = headeragenda.atividades;
     
     printf("\nLista de Atividades:\n");
     while(aux != NULL) {
@@ -150,7 +166,7 @@ void consultarTodasAtividades() {
 }
 
 void consultarAtividade(char nome[N]) {
-    Atividade *aux = headeragenda->atividades;
+    Atividade *aux = headeragenda.atividades;
     
     printf("\nAtividade:\n");
     while(aux != NULL) {
@@ -163,8 +179,8 @@ void consultarAtividade(char nome[N]) {
 }
 
 void inserirParticipante(char nomeAtividade[N], int codigoEstudante) {
-    Estudante *auxE = estudantes;
-    Atividade *auxA = headeragenda->atividades;
+    Estudante *auxE = headerestudante.estudantes;
+    Atividade *auxA = headeragenda.atividades;
     int existeEstudante = 0, existeAtividade = 0;
 
     while(auxE != NULL) {
@@ -181,52 +197,143 @@ void inserirParticipante(char nomeAtividade[N], int codigoEstudante) {
         }
         auxA = auxA->prox;
     }
-    
-    if(existeEstudante && existeAtividade) {
+
+    if(existeEstudante && existeAtividade && auxE->atividade == NULL) {
         Inscrito *novo = (Inscrito*)malloc(sizeof(Inscrito));
         novo->estudante = auxE;
-        novo->prox = auxA->estudantes;
-        auxA->estudantes = novo;
+        novo->prox = auxA->inscritos;
+        auxA->inscritos = novo;
+        (auxA->quantidade)++;
+
+        auxE->atividade = auxA;
 
         printf("\nParticipante '%s' inserido(a) com sucesso na atividade '%s'!\n", auxE->nome, auxA->nome);
-    } else {
-        printf("\nErro: estudante ou atividade nao encontrados.\n");
+    }
+    else if (auxE != NULL && auxE->atividade != NULL && (existeEstudante || existeAtividade)) {
+        printf("\nErro: estudante %s ja inscrito na atividade %s!\n", auxE->nome, auxA->nome);
+    }
+    else {
+        printf("\nErro: estudante %d ou atividade nao encontrados.\n", codigoEstudante);
     }
 }
 
-int main() {
-    estudantes = NULL;
-    headerestudante = (HeaderEstudante*) malloc(sizeof(HeaderEstudante));
-    headerestudante->ultimoInserido = NULL;
-    headeragenda = (HeaderAgenda*) malloc(sizeof(HeaderAgenda));
-    strcpy(headeragenda->data, "25/09/2025");
-    strcpy(headeragenda->horario, "10h");
-    headeragenda->atividades = NULL;
+void consultaQuantidades() {
+    Atividade *aux = headeragenda.atividades;
 
-    inserirEstudante("Miguel", "Engenharia de Sotware");
+    printf("\n-------------------------\n");
+    while(aux != NULL) {
+        printf("Atividade: %s Quantidade de inscritos: %d\n", aux->nome, aux->quantidade);
+        aux = aux->prox;
+    }
+    printf("\n-------------------------\n");
+}
+
+void consultarParticipantes(char nome[N]) {    
+    Atividade *auxA = headeragenda.atividades;
+
+    while (auxA != NULL && strcmp(auxA->nome, nome) != 0)
+    {
+       auxA = auxA->prox;
+    }
+
+    if (auxA != NULL) {
+        printf("\n-------------------------\n");
+        printf("Atividade: %s\n", auxA->nome);
+        printf("Local: %s\n", auxA->local);
+
+        Inscrito *auxE = auxA->inscritos;
+
+        while (auxE != NULL) 
+        {
+            printf("Cod: %2d | Nome: %30s | Curso: %30s\n", auxE->estudante->codigo, auxE->estudante->nome, auxE->estudante->curso);
+            auxE = auxE->prox;
+        }
+        
+        printf("\n-------------------------\n");
+    }
+}
+
+void removerParticipante(char nome[N]) {
+    Estudante *auxE = headerestudante.estudantes;
+
+    while (auxE != NULL && strcmp(auxE->nome, nome) != 0)
+    {
+        auxE = auxE->prox;
+    }
+
+    if (auxE->atividade == NULL) {
+        printf("Nao ha inscritos com este nome...");
+        return;
+    }
+
+    Inscrito *auxI = auxE->atividade->inscritos, *antI = NULL;
+
+    while (auxI != NULL && strcmp(auxI->estudante->nome, nome) != 0)
+    {
+        antI = auxI;
+        auxI = auxI->prox;
+    }
+    
+    if (antI != NULL && auxI != NULL) {
+        antI->prox = auxI->prox;
+    }
+    else if (antI != NULL) {
+        antI->prox = auxI;
+    }
+    else {
+        auxE->atividade->inscritos = NULL;
+    }
+
+    free(auxI);
+
+}
+
+void consultarInscritos() {}
+
+void consultarAtividadesPorCurso(char nome[N]) {}
+
+int main() {
+
+    inicializar();
+
     inserirEstudante("Ana", "Nutricao");
+    inserirEstudante("Miguel", "Engenharia de Sotware");
     inserirEstudante("Pedro", "Administracao");
     inserirEstudante("Gustavo", "Gastronomia");
     inserirEstudante("Douglas", "Medicina");
 
     consultarTodosEstudantes();
     
-    //removerEstudante(2, "");
-    //consultarTodosEstudantes();
+    removerEstudante(2, "");
+    consultarTodosEstudantes();
 
     inserirAtividade("Jogos de Cartas", "Sala de Jogos");
     inserirAtividade("Livros de Ficcao", "Biblioteca");
     inserirAtividade("Tenis de Mesa", "Ginasio");
     inserirAtividade("Esports", "www.site.com");
 
-    consultarTodasAtividades();
+    // consultarTodasAtividades();
 
-    //removerAtividade("Nome4");
-    //consultarTodasAtividades();
+    // removerAtividade("Nome4");
+    // consultarTodasAtividades();
 
-    //consultarAtividade("Nome3");
+    // consultarAtividade("Nome3");
+
+    // inserirParticipante("Esports", 0);
+    // inserirParticipante("Livros de Ficcao", 0);
+    // inserirParticipante("Livros de Ficcao", 3);
+    // inserirParticipante("Jogos de Cartas", 1);
+    inserirParticipante("Esports", 2);
+
+    inserirParticipante("Esports", 4);
+    inserirParticipante("Jogos de Cartas", 7);
+    
+    
+    consultaQuantidades();
+    consultarParticipantes("Jogos de Cartas");
 
     inserirParticipante("Livros de Ficcao", 1);
+    removerParticipante("Miguel");
 
     return 0;
 }
