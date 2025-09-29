@@ -48,12 +48,12 @@ void inicializar() {
     headeragenda.atividades = NULL;
 }
 
-void inserirEstudante(char nome[N], char curso[N]) {
+void inserirEstudante(char nomeEstudante[N], char cursoEstudante[N]) {
     Estudante *novo;
 
     novo = (Estudante*)malloc(sizeof(Estudante));
-    strcpy(novo->nome, nome);
-    strcpy(novo->curso, curso);
+    strcpy(novo->nome, nomeEstudante);
+    strcpy(novo->curso, cursoEstudante);
     novo->prox = NULL;
     novo->atividade = NULL;
     
@@ -80,48 +80,102 @@ void inserirEstudante(char nome[N], char curso[N]) {
     }
 }
 
-void removerEstudante(int codigo, char nome[N]) {
-    if(headerestudante.estudantes == NULL) { //Lista vazia
-        return;
+int removerInscrito(char nomeEstudante[N]) {
+    Estudante *auxE = headerestudante.estudantes;
+
+    while (auxE != NULL && strcmp(auxE->nome, nomeEstudante) != 0)
+    {
+        auxE = auxE->prox;
     }
 
-    if(headerestudante.estudantes->prox == NULL && (headerestudante.estudantes->codigo == codigo || strcmp(headerestudante.estudantes->nome, nome) == 0)) { //Primeiro e Único
-        free(headerestudante.estudantes);
-        headerestudante.estudantes = NULL;
-    } else if(headerestudante.estudantes->codigo == codigo || strcmp(headerestudante.estudantes->nome, nome) == 0) { //Primeiro, mas não único
-        Estudante *aux=headerestudante.estudantes;
-        headerestudante.estudantes = headerestudante.estudantes->prox;
-        free(aux);
-    } else { //Remove Meio ou Último
-        Estudante *aux=headerestudante.estudantes, *ant=headerestudante.estudantes;
-        while (aux != NULL && strcmp(aux->nome, nome) != 0 && aux->codigo != codigo) { 
-            ant = aux;
-            aux = aux->prox;
-        }
-        if (aux != NULL) {
-            ant->prox = aux->prox;
-            free(aux);
-        }
+    if (auxE == NULL) {
+        printf("\nErro: inscrito '%s' nao encontrado.\n", nomeEstudante);
+        return 0;
     }
+
+    if (auxE->atividade == NULL) {
+        printf("\nEstudante '%s' nao esta inscrito em nenhuma atividade.\n", nomeEstudante);
+        return 0;
+    }
+
+    auxE->atividade->quantidade--;
+
+    Inscrito *auxI = auxE->atividade->inscritos;
+    Inscrito *antI = NULL;
+
+    while (auxI != NULL && strcmp(auxI->estudante->nome, nomeEstudante) != 0) {
+        antI = auxI;
+        auxI = auxI->prox;
+    }
+
+    if (antI == NULL) {
+        auxE->atividade->inscritos = auxI->prox;
+    } else {
+        antI->prox = auxI->prox;
+    }
+
+    auxE->atividade = NULL;
+
+    free(auxI);
+    printf("\nInscrito '%s' removido(a) com sucesso.\n", nomeEstudante);
+    return 1;
+}
+
+void removerEstudante(int codigoEstudante, char nomeEstudante[N]) {
+    int removido = removerInscrito(nomeEstudante);
+
+    if(removido) {
+        if(headerestudante.estudantes == NULL) { //Lista vazia
+            return;
+        }
+        if(headerestudante.estudantes->prox == NULL && (headerestudante.estudantes->codigo == codigoEstudante || strcmp(headerestudante.estudantes->nome, nomeEstudante) == 0)) { //Primeiro e Único
+            free(headerestudante.estudantes);
+            headerestudante.estudantes = NULL;
+            removido = 1;
+        } else if(headerestudante.estudantes->codigo == codigoEstudante || strcmp(headerestudante.estudantes->nome, nomeEstudante) == 0) { //Primeiro, mas não único
+            Estudante *aux = headerestudante.estudantes;
+            headerestudante.estudantes = headerestudante.estudantes->prox;
+            free(aux);
+            removido = 1;
+        } else { //Remove Meio ou Último
+            Estudante *aux = headerestudante.estudantes, *ant = headerestudante.estudantes;
+            while (aux != NULL && strcmp(aux->nome, nomeEstudante) != 0 && aux->codigo != codigoEstudante) { 
+                ant = aux;
+                aux = aux->prox;
+            }
+            if (aux != NULL) {
+                ant->prox = aux->prox;
+                free(aux);
+                removido = 1;
+            }
+        }
+        printf("Estudante '%s' removido com sucesso!\n", nomeEstudante);
+    } else {
+        printf("Erro: estudante '%s' nao encontrado!\n", nomeEstudante);
+    }
+    printf("---------------------------------------------\n");
 }
 
 void consultarTodosEstudantes() {
     Estudante *aux = headerestudante.estudantes;
-    
-    printf("\nLista de Estudantes:\n");
+
+    printf("\n\n--- Lista de Estudantes ---\n");
     while(aux != NULL) {
         printf("Cod: %2d | Nome: %30s | Curso: %30s\n", aux->codigo, aux->nome, aux->curso);
         aux = aux->prox;
     }
+    
+    printf("---------------------------------------------\n");
 }
 
-void inserirAtividade(char nome[N], char local[N]) {
+void inserirAtividade(char nomeAtividade[N], char localAtividade[N]) {
     Atividade *novo;
 
     novo = (Atividade*)malloc(sizeof(Atividade));
-    strcpy(novo->nome, nome);
-    strcpy(novo->local, local);
+    strcpy(novo->nome, nomeAtividade);
+    strcpy(novo->local, localAtividade);
     novo->quantidade = 0;
+    novo->inscritos = NULL;
     
     if(headeragenda.atividades==NULL) {
         novo->prox = NULL;
@@ -131,20 +185,20 @@ void inserirAtividade(char nome[N], char local[N]) {
     headeragenda.atividades = novo;
 }
 
-void removerAtividade(char nome[N]) {
+void removerAtividade(char nomeAtividade[N]) {
     if(headeragenda.atividades == NULL) { //Lista vazia
         return;
     }
-    if(headeragenda.atividades->prox == NULL && strcmp(headeragenda.atividades->nome, nome) == 0) { //Primeiro e Único
+    if(headeragenda.atividades->prox == NULL && strcmp(headeragenda.atividades->nome, nomeAtividade) == 0) { //Primeiro e Único
         free(headeragenda.atividades);
         headeragenda.atividades = NULL;
-    } else if(strcmp(headeragenda.atividades->nome, nome) == 0) { //Primeiro, mas não único
+    } else if(strcmp(headeragenda.atividades->nome, nomeAtividade) == 0) { //Primeiro, mas não único
         Atividade *aux=headeragenda.atividades;
         headeragenda.atividades = headeragenda.atividades->prox;
         free(aux);
     } else { //Remove Meio ou Último
         Atividade *aux=headeragenda.atividades, *ant=headeragenda.atividades;
-        while (aux != NULL && strcmp(aux->nome, nome) != 0) { 
+        while (aux != NULL && strcmp(aux->nome, nomeAtividade) != 0) { 
             ant = aux;
             aux = aux->prox;
         }
@@ -157,28 +211,35 @@ void removerAtividade(char nome[N]) {
 
 void consultarTodasAtividades() {
     Atividade *aux = headeragenda.atividades;
-    
-    printf("\nLista de Atividades:\n");
+ 
+    printf("\n\n--- Lista de Atividades ---\n");
     while(aux != NULL) {
         printf("Nome: %30s | Local: %30s\n", aux->nome, aux->local);
         aux = aux->prox;
     }
+    printf("---------------------------------------------\n");
 }
 
-void consultarAtividade(char nome[N]) {
+void consultarAtividade(char nomeAtividade[N]) {
     Atividade *aux = headeragenda.atividades;
-    
-    printf("\nAtividade:\n");
+    int encontrada = 0;
+
+    printf("\n\n--- Detalhes da Atividade '%s' ---\n", nomeAtividade);
     while(aux != NULL) {
-        if(strcmp(aux->nome, nome) == 0) {
+        if(strcmp(aux->nome, nomeAtividade) == 0) {
             printf("Nome: %30s | Local: %30s\n", aux->nome, aux->local);
+            encontrada = 1;
             break;
         }
         aux = aux->prox;
     }
+    if (!encontrada) {
+        printf("Atividade '%s' nao encontrada.\n", nomeAtividade);
+    }
+    printf("---------------------------------------------\n");
 }
 
-void inserirParticipante(char nomeAtividade[N], int codigoEstudante) {
+void increverParticipante(char nomeAtividade[N], int codigoEstudante) {
     Estudante *auxE = headerestudante.estudantes;
     Atividade *auxA = headeragenda.atividades;
     int existeEstudante = 0, existeAtividade = 0;
@@ -212,85 +273,107 @@ void inserirParticipante(char nomeAtividade[N], int codigoEstudante) {
     else if (auxE != NULL && auxE->atividade != NULL && (existeEstudante || existeAtividade)) {
         printf("\nErro: estudante %s ja inscrito na atividade %s!\n", auxE->nome, auxA->nome);
     }
-    else {
-        printf("\nErro: estudante %d ou atividade nao encontrados.\n", codigoEstudante);
+
+    if(!existeEstudante) {
+        printf("\nErro: estudante de codigo %d nao encontrado.\n", codigoEstudante);
+    } 
+    if(!existeAtividade) {
+        printf("\nErro: atividade %s nao encontrada.\n", nomeAtividade);
     }
 }
 
 void consultaQuantidades() {
     Atividade *aux = headeragenda.atividades;
 
-    printf("\n-------------------------\n");
+    printf("\n\n--- Quantidade de Inscritos por Atividade ---\n");
     while(aux != NULL) {
-        printf("Atividade: %s Quantidade de inscritos: %d\n", aux->nome, aux->quantidade);
+        printf("Atividade: %30s | Quantidade de inscritos: %d\n", aux->nome, aux->quantidade);
         aux = aux->prox;
     }
-    printf("\n-------------------------\n");
+    printf("---------------------------------------------\n");
 }
 
-void consultarParticipantes(char nome[N]) {    
+void consultarParticipantes(char nomeAtividade[N]) {
     Atividade *auxA = headeragenda.atividades;
 
-    while (auxA != NULL && strcmp(auxA->nome, nome) != 0)
-    {
-       auxA = auxA->prox;
+    while (auxA != NULL && strcmp(auxA->nome, nomeAtividade) != 0) {
+        auxA = auxA->prox;
     }
 
+    printf("\n\n--- Participantes da Atividade '%s' ---\n", nomeAtividade);
     if (auxA != NULL) {
-        printf("\n-------------------------\n");
-        printf("Atividade: %s\n", auxA->nome);
         printf("Local: %s\n", auxA->local);
-
-        Inscrito *auxE = auxA->inscritos;
-
-        while (auxE != NULL) 
-        {
-            printf("Cod: %2d | Nome: %30s | Curso: %30s\n", auxE->estudante->codigo, auxE->estudante->nome, auxE->estudante->curso);
-            auxE = auxE->prox;
-        }
         
-        printf("\n-------------------------\n");
+        Inscrito *auxI = auxA->inscritos;
+        if (auxI == NULL) {
+            printf("Nenhum participante inscrito.\n");
+        } else {
+            while (auxI != NULL) {
+                printf("Cod: %2d | Nome: %30s | Curso: %30s\n", auxI->estudante->codigo, auxI->estudante->nome, auxI->estudante->curso);
+                auxI = auxI->prox;
+            }
+        }
+    } else {
+        printf("Atividade '%s' nao encontrada.\n", nomeAtividade);
     }
+    printf("---------------------------------------------\n");
 }
 
-void removerParticipante(char nome[N]) {
-    Estudante *auxE = headerestudante.estudantes;
+void consultarInscritos() {
+    Atividade *auxA = headeragenda.atividades;
 
-    while (auxE != NULL && strcmp(auxE->nome, nome) != 0)
-    {
+    printf("\n\n--- Lista de Inscritos por Atividade ---\n");
+    if (auxA == NULL) {
+        printf("Nenhuma atividade cadastrada.\n");
+    } else {
+        while (auxA != NULL) {
+            printf("\nAtividade: %s (%d inscritos)\n", auxA->nome, auxA->quantidade);
+            
+            Inscrito *auxI = auxA->inscritos;
+            if (auxI == NULL) {
+                printf("- Nenhum participante inscrito.\n");
+            } else {
+                while(auxI != NULL) {
+                    printf("- %s\n", auxI->estudante->nome);
+                    auxI = auxI->prox;
+                }
+            }
+            auxA = auxA->prox;
+        }
+    }
+    printf("\n---------------------------------------\n");
+}
+
+void consultarAtividadesPorEstudante(char nomeEstudante[N]) {
+    Estudante *estudanteEncontrado = NULL;
+    Estudante *auxE = headerestudante.estudantes;
+    
+    while(auxE != NULL) {
+        if(strcmp(auxE->nome, nomeEstudante) == 0) {
+            estudanteEncontrado = auxE;
+            break;
+        }
         auxE = auxE->prox;
     }
 
-    if (auxE->atividade == NULL) {
-        printf("Nao ha inscritos com este nome...");
+    if(estudanteEncontrado == NULL) {
+        printf("Erro: estudante '%s' nao encontrado.\n", nomeEstudante);
+        printf("---------------------------------------------\n");
         return;
     }
 
-    Inscrito *auxI = auxE->atividade->inscritos, *antI = NULL;
+    printf("\n--- Atividades de %s ---\n", nomeEstudante);
 
-    while (auxI != NULL && strcmp(auxI->estudante->nome, nome) != 0)
-    {
-        antI = auxI;
-        auxI = auxI->prox;
+    if(estudanteEncontrado->atividade != NULL) {
+        printf("O estudante '%s' esta inscrito na atividade:\n", estudanteEncontrado->nome);
+        printf("- Nome: %s | Local: %s\n", estudanteEncontrado->atividade->nome, estudanteEncontrado->atividade->local);
+    } else {
+        printf("O estudante '%s' nao esta inscrito em nenhuma atividade.\n", estudanteEncontrado->nome);
     }
-    
-    if (antI != NULL && auxI != NULL) {
-        antI->prox = auxI->prox;
-    }
-    else if (antI != NULL) {
-        antI->prox = auxI;
-    }
-    else {
-        auxE->atividade->inscritos = NULL;
-    }
-
-    free(auxI);
-
+    printf("---------------------------------------------\n");
 }
 
-void consultarInscritos() {}
-
-void consultarAtividadesPorCurso(char nome[N]) {}
+//void consultarAtividadesPorCurso(char nome[N]) {}
 
 int main() {
 
@@ -303,37 +386,21 @@ int main() {
     inserirEstudante("Douglas", "Medicina");
 
     consultarTodosEstudantes();
-    
-    removerEstudante(2, "");
-    consultarTodosEstudantes();
 
     inserirAtividade("Jogos de Cartas", "Sala de Jogos");
     inserirAtividade("Livros de Ficcao", "Biblioteca");
     inserirAtividade("Tenis de Mesa", "Ginasio");
     inserirAtividade("Esports", "www.site.com");
 
-    // consultarTodasAtividades();
+    increverParticipante("Esports", 2);
+    increverParticipante("Esports", 4);
+    increverParticipante("Jogos de Cartas", 0);
 
-    // removerAtividade("Nome4");
-    // consultarTodasAtividades();
+    consultarInscritos();
 
-    // consultarAtividade("Nome3");
+    removerEstudante(0, "Anaa");
 
-    // inserirParticipante("Esports", 0);
-    // inserirParticipante("Livros de Ficcao", 0);
-    // inserirParticipante("Livros de Ficcao", 3);
-    // inserirParticipante("Jogos de Cartas", 1);
-    inserirParticipante("Esports", 2);
-
-    inserirParticipante("Esports", 4);
-    inserirParticipante("Jogos de Cartas", 7);
-    
-    
-    consultaQuantidades();
-    consultarParticipantes("Jogos de Cartas");
-
-    inserirParticipante("Livros de Ficcao", 1);
-    removerParticipante("Miguel");
+    consultarInscritos();
 
     return 0;
 }
