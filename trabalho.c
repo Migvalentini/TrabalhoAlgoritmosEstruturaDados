@@ -78,8 +78,11 @@ void inserirEstudante(char nomeEstudante[N], char cursoEstudante[N]) {
         novo->codigo = headerestudante.ultimoInserido->codigo + 1;
         headerestudante.ultimoInserido = novo;
     }
+    printf("Estudante '%s' cadastrado com sucesso!\n", nomeEstudante);
+    printf("----------------------------------------------------------------------------\n");
 }
 
+// Recebe o nome do estudante e remove sua inscrição
 int removerInscrito(char nomeEstudante[N]) {
     Estudante *auxE = headerestudante.estudantes;
 
@@ -118,6 +121,7 @@ int removerInscrito(char nomeEstudante[N]) {
 
     free(auxI);
     printf("\nInscrito '%s' removido(a) com sucesso.\n", nomeEstudante);
+    printf("----------------------------------------------------------------------------\n");
     return 1;
 }
 
@@ -153,7 +157,7 @@ void removerEstudante(int codigoEstudante, char nomeEstudante[N]) {
     } else {
         printf("Erro: Estudante '%s' nao encontrado!\n", nomeEstudante);
     }
-    printf("---------------------------------------------\n");
+    printf("----------------------------------------------------------------------------\n");
 }
 
 void consultarTodosEstudantes() {
@@ -165,7 +169,7 @@ void consultarTodosEstudantes() {
         aux = aux->prox;
     }
     
-    printf("---------------------------------------------\n");
+    printf("----------------------------------------------------------------------------\n");
 }
 
 void inserirAtividade(char nomeAtividade[N], char localAtividade[N]) {
@@ -183,6 +187,8 @@ void inserirAtividade(char nomeAtividade[N], char localAtividade[N]) {
         novo->prox = headeragenda.atividades;
     }
     headeragenda.atividades = novo;
+    printf("Atividade '%s' cadastrada com sucesso!\n", nomeAtividade);
+    printf("----------------------------------------------------------------------------\n");
 }
 
 void removerAtividade(char nomeAtividade[N]) {
@@ -207,6 +213,8 @@ void removerAtividade(char nomeAtividade[N]) {
             free(aux);
         }
     }
+    printf("Atividade '%s' removida com sucesso!\n", nomeAtividade);
+    printf("----------------------------------------------------------------------------\n");
 }
 
 void consultarTodasAtividades() {
@@ -217,7 +225,7 @@ void consultarTodasAtividades() {
         printf("Nome: %30s | Local: %30s\n", aux->nome, aux->local);
         aux = aux->prox;
     }
-    printf("---------------------------------------------\n");
+    printf("----------------------------------------------------------------------------\n");
 }
 
 void consultarAtividade(char nomeAtividade[N]) {
@@ -236,7 +244,7 @@ void consultarAtividade(char nomeAtividade[N]) {
     if (!encontrada) {
         printf("Atividade '%s' nao encontrada.\n", nomeAtividade);
     }
-    printf("---------------------------------------------\n");
+    printf("----------------------------------------------------------------------------\n");
 }
 
 void inscreverParticipante(char nomeAtividade[N], int codigoEstudante) {
@@ -280,9 +288,10 @@ void inscreverParticipante(char nomeAtividade[N], int codigoEstudante) {
     if(!existeAtividade) {
         printf("\nErro: Atividade %s nao encontrada.\n", nomeAtividade);
     }
+    printf("----------------------------------------------------------------------------\n");
 }
 
-void consultaQuantidades() {
+void consultarQuantidades() {
     Atividade *aux = headeragenda.atividades;
 
     printf("\n\n--- Quantidade de Inscritos por Atividade ---\n");
@@ -290,9 +299,10 @@ void consultaQuantidades() {
         printf("Atividade: %30s | Quantidade de inscritos: %d\n", aux->nome, aux->quantidade);
         aux = aux->prox;
     }
-    printf("---------------------------------------------\n");
+    printf("----------------------------------------------------------------------------\n");
 }
 
+// Recebe o nome de uma atividade e exibe todos os seus participantes
 void consultarParticipantes(char nomeAtividade[N]) {
     Atividade *auxA = headeragenda.atividades;
 
@@ -316,9 +326,10 @@ void consultarParticipantes(char nomeAtividade[N]) {
     } else {
         printf("Atividade '%s' nao encontrada.\n", nomeAtividade);
     }
-    printf("---------------------------------------------\n");
+    printf("----------------------------------------------------------------------------\n");
 }
 
+// Exibe todos os participantes de cada uma das atividades
 void consultarInscritos() {
     Atividade *auxA = headeragenda.atividades;
 
@@ -327,7 +338,7 @@ void consultarInscritos() {
         printf("Nenhuma atividade cadastrada.\n");
     } else {
         while (auxA != NULL) {
-            printf("\nAtividade: %s (%d inscritos)\n", auxA->nome, auxA->quantidade);
+            printf("\nAtividade: %s (%d %s)\n", auxA->nome, auxA->quantidade, auxA->quantidade >= 2 ? "inscritos" : "inscrito");
             
             Inscrito *auxI = auxA->inscritos;
             if (auxI == NULL) {
@@ -341,9 +352,10 @@ void consultarInscritos() {
             auxA = auxA->prox;
         }
     }
-    printf("\n---------------------------------------\n");
+    printf("----------------------------------------------------------------------------\n");
 }
 
+// Recebe o nome de um estudante e exibe a atividade que ele está inscrito 
 void consultarAtividadesPorEstudante(char nomeEstudante[N]) {
     Estudante *estudanteEncontrado = NULL;
     Estudante *auxE = headerestudante.estudantes;
@@ -358,7 +370,7 @@ void consultarAtividadesPorEstudante(char nomeEstudante[N]) {
 
     if(estudanteEncontrado == NULL) {
         printf("Erro: Estudante '%s' nao encontrado.\n", nomeEstudante);
-        printf("---------------------------------------------\n");
+        printf("----------------------------------------------------------------------------\n");
         return;
     }
 
@@ -370,21 +382,22 @@ void consultarAtividadesPorEstudante(char nomeEstudante[N]) {
     } else {
         printf("O estudante '%s' nao esta inscrito em nenhuma atividade.\n", estudanteEncontrado->nome);
     }
-    printf("---------------------------------------------\n");
+    printf("----------------------------------------------------------------------------\n");
 }
 
-void consultarAtividadesPorCurso(char nome[N]) {
+// Recebe o nome de algum curso dos estudantes e exibe as atividades que há ao menos 1 inscrito
+void consultarAtividadesPorCurso(char nomeCurso[N]) {
     Atividade* auxA = headeragenda.atividades;
     int listou = 0;
 
-    printf("\n-- Atividades com pelo menos 1 Estudante de %s --\n\n", nome);
+    printf("\n-- Atividades com pelo menos 1 Estudante de '%s' --\n\n", nomeCurso);
 
     while (auxA != NULL) {
         int encontrou = 0;
 
         Inscrito* auxI = auxA->inscritos;
         while (auxI != NULL) {
-            if (strcasecmp(nome, auxI->estudante->curso) == 0) {
+            if (strcasecmp(nomeCurso, auxI->estudante->curso) == 0) {
                 encontrou = 1;
                 listou = 1;
                 break;
@@ -400,10 +413,10 @@ void consultarAtividadesPorCurso(char nome[N]) {
     }
 
     if (!listou) {
-        printf("Não há inscritos de %s em nenhuma atividade\n", nome);
+        printf("Nao ha inscritos de '%s' em nenhuma atividade\n", nomeCurso);
     }
 
-    printf("\n---------------------------------------------\n\n");
+    printf("----------------------------------------------------------------------------\n");
 }
 
 int main() {
@@ -415,6 +428,7 @@ int main() {
     inserirEstudante("Pedro", "Administracao");
     inserirEstudante("Gustavo", "Gastronomia");
     inserirEstudante("Douglas", "Medicina");
+    inserirEstudante("Marcio", "Medicina");
 
     consultarTodosEstudantes();
 
@@ -425,15 +439,27 @@ int main() {
 
     inscreverParticipante("Esports", 2);
     inscreverParticipante("Esports", 4);
+    inscreverParticipante("Tenis de Mesa", 5);
     inscreverParticipante("Jogos de Cartas", 0);
 
     consultarInscritos();
 
-    removerEstudante(0, "Anaa");
+    removerEstudante(0, "Ana");
 
     consultarInscritos();
+    consultarQuantidades();
+    
+    consultarAtividadesPorCurso("Medicina");
+    
+    removerAtividade("Jogos de Cartas");
+    
+    consultarInscritos();
+    
+    consultarTodasAtividades();
 
-    consultarAtividadesPorCurso("Ciencia da Computacao");
+    consultarParticipantes("Livros de Ficcao");
+
+    consultarAtividadesPorEstudante("Pedro");
 
     return 0;
 }
