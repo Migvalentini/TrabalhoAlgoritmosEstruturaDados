@@ -89,12 +89,12 @@ int removerInscrito(char nomeEstudante[N]) {
     }
 
     if (auxE == NULL) {
-        printf("\nErro: inscrito '%s' nao encontrado.\n", nomeEstudante);
+        printf("\nErro: Inscrito '%s' nao encontrado.\n", nomeEstudante);
         return 0;
     }
 
     if (auxE->atividade == NULL) {
-        printf("\nEstudante '%s' nao esta inscrito em nenhuma atividade.\n", nomeEstudante);
+        printf("\n'%s' nao esta inscrito em nenhuma atividade.\n", nomeEstudante);
         return 0;
     }
 
@@ -151,7 +151,7 @@ void removerEstudante(int codigoEstudante, char nomeEstudante[N]) {
         }
         printf("Estudante '%s' removido com sucesso!\n", nomeEstudante);
     } else {
-        printf("Erro: estudante '%s' nao encontrado!\n", nomeEstudante);
+        printf("Erro: Estudante '%s' nao encontrado!\n", nomeEstudante);
     }
     printf("---------------------------------------------\n");
 }
@@ -239,7 +239,7 @@ void consultarAtividade(char nomeAtividade[N]) {
     printf("---------------------------------------------\n");
 }
 
-void increverParticipante(char nomeAtividade[N], int codigoEstudante) {
+void inscreverParticipante(char nomeAtividade[N], int codigoEstudante) {
     Estudante *auxE = headerestudante.estudantes;
     Atividade *auxA = headeragenda.atividades;
     int existeEstudante = 0, existeAtividade = 0;
@@ -271,14 +271,14 @@ void increverParticipante(char nomeAtividade[N], int codigoEstudante) {
         printf("\nParticipante '%s' inserido(a) com sucesso na atividade '%s'!\n", auxE->nome, auxA->nome);
     }
     else if (auxE != NULL && auxE->atividade != NULL && (existeEstudante || existeAtividade)) {
-        printf("\nErro: estudante %s ja inscrito na atividade %s!\n", auxE->nome, auxA->nome);
+        printf("\nErro: Estudante %s ja inscrito na atividade %s!\n", auxE->nome, auxA->nome);
     }
 
     if(!existeEstudante) {
-        printf("\nErro: estudante de codigo %d nao encontrado.\n", codigoEstudante);
+        printf("\nErro: Estudante de codigo %d nao encontrado.\n", codigoEstudante);
     } 
     if(!existeAtividade) {
-        printf("\nErro: atividade %s nao encontrada.\n", nomeAtividade);
+        printf("\nErro: Atividade %s nao encontrada.\n", nomeAtividade);
     }
 }
 
@@ -357,7 +357,7 @@ void consultarAtividadesPorEstudante(char nomeEstudante[N]) {
     }
 
     if(estudanteEncontrado == NULL) {
-        printf("Erro: estudante '%s' nao encontrado.\n", nomeEstudante);
+        printf("Erro: Estudante '%s' nao encontrado.\n", nomeEstudante);
         printf("---------------------------------------------\n");
         return;
     }
@@ -373,7 +373,38 @@ void consultarAtividadesPorEstudante(char nomeEstudante[N]) {
     printf("---------------------------------------------\n");
 }
 
-//void consultarAtividadesPorCurso(char nome[N]) {}
+void consultarAtividadesPorCurso(char nome[N]) {
+    Atividade* auxA = headeragenda.atividades;
+    int listou = 0;
+
+    printf("\n-- Atividades com pelo menos 1 Estudante de %s --\n\n", nome);
+
+    while (auxA != NULL) {
+        int encontrou = 0;
+
+        Inscrito* auxI = auxA->inscritos;
+        while (auxI != NULL) {
+            if (strcasecmp(nome, auxI->estudante->curso) == 0) {
+                encontrou = 1;
+                listou = 1;
+                break;
+            }
+            auxI = auxI->prox;
+        }
+
+        if (encontrou) {
+            printf("%s\n", auxA->nome);
+        }
+        
+        auxA = auxA->prox;
+    }
+
+    if (!listou) {
+        printf("Não há inscritos de %s em nenhuma atividade\n", nome);
+    }
+
+    printf("\n---------------------------------------------\n\n");
+}
 
 int main() {
 
@@ -392,15 +423,17 @@ int main() {
     inserirAtividade("Tenis de Mesa", "Ginasio");
     inserirAtividade("Esports", "www.site.com");
 
-    increverParticipante("Esports", 2);
-    increverParticipante("Esports", 4);
-    increverParticipante("Jogos de Cartas", 0);
+    inscreverParticipante("Esports", 2);
+    inscreverParticipante("Esports", 4);
+    inscreverParticipante("Jogos de Cartas", 0);
 
     consultarInscritos();
 
     removerEstudante(0, "Anaa");
 
     consultarInscritos();
+
+    consultarAtividadesPorCurso("Ciencia da Computacao");
 
     return 0;
 }
