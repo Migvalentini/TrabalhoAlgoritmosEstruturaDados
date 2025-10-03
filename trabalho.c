@@ -356,7 +356,7 @@ void consultarInscritos() {
 }
 
 // Recebe o nome de um estudante e exibe a atividade que ele está inscrito 
-void consultarAtividadesPorEstudante(char nomeEstudante[N]) {
+void consultarAtividadePorEstudante(char nomeEstudante[N]) {
     Estudante *estudanteEncontrado = NULL;
     Estudante *auxE = headerestudante.estudantes;
     
@@ -419,7 +419,7 @@ void consultarAtividadesPorCurso(char nomeCurso[N]) {
     printf("----------------------------------------------------------------------------\n");
 }
 
-int main() {
+int main() {    
 
     inicializar();
 
@@ -441,6 +441,7 @@ int main() {
     inscreverParticipante("Esports", 4);
     inscreverParticipante("Tenis de Mesa", 5);
     inscreverParticipante("Jogos de Cartas", 0);
+    inscreverParticipante("Esports", 5);
 
     consultarInscritos();
 
@@ -459,7 +460,7 @@ int main() {
 
     consultarParticipantes("Livros de Ficcao");
 
-    consultarAtividadesPorEstudante("Pedro");
+    consultarAtividadePorEstudante("Pedro");
 
     return 0;
 }
