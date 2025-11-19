@@ -1,4 +1,4 @@
-//- INSERE TURMA: permite a inserção de uma turma na lista de turmas, de forma ordenada. Não pode ter número de turma repetido.
+//- OK - INSERE TURMA: permite a inserção de uma turma na lista de turmas, de forma ordenada. Não pode ter número de turma repetido.
 //- INSERE ESTUDANTE: permite a inserção de um estudante em uma das turmas, desde que a turma já exista. 
 //Não pode haver nomes repetidos de estudantes na mesma turma, e entre as turmas, se houver nome repetido, caracterizar o nome de cada estudante como pertencente a uma turma específica
 //- REMOVE TURMA: remove uma turma, removendo também todos os estudantes associados a ela
@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #define N 30
 
 typedef struct estudante {
@@ -39,13 +40,30 @@ typedef struct turma {
 
 Turma *turmas = NULL; 
 
-void inserirTurma(int codigo) {
-    Turma *novo = (Turma*) malloc(sizeof(Turma));
+Estudante* novoEstudante(char nome[N]) {
+    Estudante *novo = (Estudante*)malloc(sizeof(Estudante));
+
+    strcpy(novo->nome, nome);
+    novo->pai = NULL;
+    novo->esq = NULL;
+    novo->dir = NULL;
+
+    return novo;
+}
+
+Turma* novaTurma(int codigo) {
+    Turma *novo = (Turma*)malloc(sizeof(Turma));
 
     novo->codigo = codigo;
-    novo->quantidadeEstudantes = 0;
     novo->estudantes = NULL;
     novo->prox = NULL;
+    novo->quantidadeEstudantes = 0;
+
+    return novo;
+}
+
+void inserirTurma(int codigo) {
+    Turma *novo = novaTurma(codigo);
 
     if (turmas == NULL) {
         turmas = novo;
@@ -63,9 +81,8 @@ void inserirTurma(int codigo) {
             aux = aux->prox;
         }
     
-        if ((ant != NULL && ant->codigo == codigo) ||
-            (aux != NULL && aux->codigo == codigo)) {
-            printf("Erro: turma %d já cadastrada!\n", codigo);
+        if (aux != NULL && aux->codigo == codigo) {
+            printf("Erro: turma %d ja cadastrada!\n", codigo);
             free(novo);
             return;
         }
@@ -78,13 +95,61 @@ void inserirTurma(int codigo) {
     printf("Turma '%d' cadastrada com sucesso!\n", codigo);
 }
 
-void consultarTodasTurmas() {
-    Turma *aux = turmas;
+Estudante* inserirEstudanteRecursivo(Estudante* estudantes, char nome[N], Estudante* pai) {
+    if (estudantes == NULL) {
+        Estudante *novo = novoEstudante(nome);
+        novo->pai = pai;
+        return novo;
+    }
 
-    printf("\n\n--- Lista de Turmas ---\n");
-    while(aux != NULL) {
-        printf("Cod: %2d\n", aux->codigo);
+    if (strcmp(nome, estudantes->nome) < 0) {
+        estudantes->esq = inserirEstudanteRecursivo(estudantes->esq, nome, estudantes);
+    }
+    else if (strcmp(nome, estudantes->nome) > 0) {
+        estudantes->dir = inserirEstudanteRecursivo(estudantes->dir, nome, estudantes);
+    }
+    else {
+        printf("Erro: nome '%s' ja existe nesta turma!\n", nome);
+    }
+
+    return estudantes;
+}
+
+void inserirEstudante(int codigoturma, char nome[N]) {
+    Turma *aux = turmas;
+    
+    while(aux != NULL && aux->codigo != codigoturma) {
         aux = aux->prox;
+    }
+
+    if (aux == NULL) {
+        printf("Turma nao encontrada!\n");
+        return;
+    }
+
+    aux->estudantes = inserirEstudanteRecursivo(aux->estudantes, nome, NULL);
+    (aux->quantidadeEstudantes)++;
+}
+
+void centralEstudante(Estudante* a) {
+    if (a != NULL) {
+        centralEstudante(a->esq);
+        printf("- %s \n", a->nome);
+        centralEstudante(a->dir);
+    }
+}
+
+void consultarTodasTurmas() {
+    Turma *auxT = turmas;
+    
+    printf("\n\n--- Lista de Turmas ---\n");
+    while(auxT != NULL) {
+        printf("Cod: %2d Estudantes: %d\n", auxT->codigo, auxT->quantidadeEstudantes);
+        Estudante *auxE = auxT->estudantes;
+
+        centralEstudante(auxE);
+
+        auxT = auxT->prox;
     }
     
     printf("----------------------------------------------------------------------------\n");
@@ -97,10 +162,49 @@ void inicializar () {
 int main() {
     inicializar();
 
-    inserirTurma(100);
-    inserirTurma(300);
-    inserirTurma(200);
-    inserirTurma(400);
+    inserirTurma(103);
+    inserirTurma(201);
+    inserirTurma(305);
+    inserirTurma(305);
+    inserirTurma(202);
+    inserirTurma(105);
+
+    inserirEstudante(103, "Joao");
+    inserirEstudante(103, "Ana");
+    inserirEstudante(103, "Mauro");
+    inserirEstudante(103, "Clarice");
+    inserirEstudante(103, "Luiz");
+    inserirEstudante(103, "Samuel");
+    inserirEstudante(103, "Diego");
+    
+    inserirEstudante(201, "Carlos");
+    inserirEstudante(201, "Maria");
+    inserirEstudante(201, "Beatriz");
+    inserirEstudante(201, "Lucas");
+    inserirEstudante(201, "Vitor");
+    inserirEstudante(201, "Denise");
+    
+    inserirEstudante(305, "Maria");
+    inserirEstudante(305, "Eduardo");
+    inserirEstudante(305, "Paulo");
+    inserirEstudante(305, "Cintia");
+    inserirEstudante(305, "Marisa");
+    inserirEstudante(305, "Alvaro");
+    inserirEstudante(305, "Sandra");
+    
+    inserirEstudante(202, "Patricia");
+    inserirEstudante(202, "Anelise");
+    inserirEstudante(202, "Douglas");
+    inserirEstudante(202, "Diego");
+    inserirEstudante(202, "Marcos");
+    inserirEstudante(202, "Vania");
+    
+    inserirEstudante(105, "Eduardo");
+    inserirEstudante(105, "Lucas");
+    inserirEstudante(105, "Maria");
+    inserirEstudante(105, "Vinicius");
+    inserirEstudante(105, "Felipe");
+    inserirEstudante(105, "Clara");
 
     consultarTodasTurmas();
 }
