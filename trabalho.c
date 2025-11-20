@@ -1,16 +1,15 @@
 //- OK - INSERE TURMA: permite a inserção de uma turma na lista de turmas, de forma ordenada. Não pode ter número de turma repetido.
-//- INSERE ESTUDANTE: permite a inserção de um estudante em uma das turmas, desde que a turma já exista. 
+//- OK - INSERE ESTUDANTE: permite a inserção de um estudante em uma das turmas, desde que a turma já exista. 
 //Não pode haver nomes repetidos de estudantes na mesma turma, e entre as turmas, se houver nome repetido, caracterizar o nome de cada estudante como pertencente a uma turma específica
 //- REMOVE TURMA: remove uma turma, removendo também todos os estudantes associados a ela
 //- REMOVE ESTUDANTE: remove um estudante de uma turma específica (remove o nodo com o nome do estudante), mantendo a ABP na qual ele estava situado ordenada.
-//- CONTA ESTUDANTES: mostra cada turma com o número total de estudantes de cada turma.
-//- EXIBE TURMA: exibe a lista dos nomes dos estudantes de uma turma em ordem alfabética (de A a Z) ou em ordem alfabética inversa (de Z a A).
-//- EXIBE TURMA PRÉ: exibe a lista dos nomes dos estudantes de uma turma em ordem pré-fixada pela esquerda.
+//- OK - CONTA ESTUDANTES: mostra cada turma com o número total de estudantes de cada turma.
+//- OK - EXIBE TURMA: exibe a lista dos nomes dos estudantes de uma turma em ordem alfabética (de A a Z) ou em ordem alfabética inversa (de Z a A).
+//- OK - EXIBE TURMA PRÉ: exibe a lista dos nomes dos estudantes de uma turma em ordem pré-fixada pela esquerda.
 //- EXIBE TODOS ESTUDANTES: exibe uma lista única, com o nome de todos os estudantes de todas as turmas, em ordem alfabética (colocar a turma ao lado de cada nome)
 //- NOMES REPETIDOS: exibe os nomes repetidos mais de uma vez (entre as turmas)
-//- MAIOR TURMA: exibe a turma com maior número de estudantes: número da turma e quantidade de estudantes. Se houver igualdade, exibir todas as turmas com esse maior número
-//- MENOR TURMA: exibe a turma com menor número de estudantes: número da turma e quantidade de estudantes. 
-//Se houver igualdade, exibir todas as turmas com esse menor número
+//- OK - MAIOR TURMA: exibe a turma com maior número de estudantes: número da turma e quantidade de estudantes. Se houver igualdade, exibir todas as turmas com esse maior número
+//- OK - MENOR TURMA: exibe a turma com menor número de estudantes: número da turma e quantidade de estudantes. Se houver igualdade, exibir todas as turmas com esse menor número
 
 //Turmas/estudantes a serem incluídos inicialmente: 
 //103: joao, ana, mauro, clarice, luiz, samuel, diego
@@ -51,10 +50,10 @@ Estudante* novoEstudante(char nome[N]) {
     return novo;
 }
 
-Turma* novaTurma(int codigo) {
+Turma* novaTurma(int codigoTurma) {
     Turma *novo = (Turma*)malloc(sizeof(Turma));
 
-    novo->codigo = codigo;
+    novo->codigo = codigoTurma;
     novo->estudantes = NULL;
     novo->prox = NULL;
     novo->quantidadeEstudantes = 0;
@@ -62,13 +61,13 @@ Turma* novaTurma(int codigo) {
     return novo;
 }
 
-void inserirTurma(int codigo) {
-    Turma *novo = novaTurma(codigo);
+void inserirTurma(int codigoTurma) {
+    Turma *novo = novaTurma(codigoTurma);
 
     if (turmas == NULL) {
         turmas = novo;
     }
-    else if (codigo < turmas->codigo) {
+    else if (codigoTurma < turmas->codigo) {
         novo->prox = turmas;
         turmas = novo;
     }
@@ -76,13 +75,13 @@ void inserirTurma(int codigo) {
         Turma *ant = turmas;
         Turma *aux = turmas->prox;
     
-        while (aux != NULL && aux->codigo < codigo) {
+        while (aux != NULL && aux->codigo < codigoTurma) {
             ant = aux;
             aux = aux->prox;
         }
     
-        if (aux != NULL && aux->codigo == codigo) {
-            printf("Erro: turma %d ja cadastrada!\n", codigo);
+        if (aux != NULL && aux->codigo == codigoTurma) {
+            printf("Erro: turma %d ja cadastrada!\n", codigoTurma);
             free(novo);
             return;
         }
@@ -92,7 +91,7 @@ void inserirTurma(int codigo) {
     
     }
     
-    printf("Turma '%d' cadastrada com sucesso!\n", codigo);
+    printf("Turma '%d' cadastrada com sucesso!\n", codigoTurma);
 }
 
 Estudante* inserirEstudanteRecursivo(Estudante* estudantes, char nome[N], Estudante* pai) {
@@ -115,10 +114,10 @@ Estudante* inserirEstudanteRecursivo(Estudante* estudantes, char nome[N], Estuda
     return estudantes;
 }
 
-void inserirEstudante(int codigoturma, char nome[N]) {
+void inserirEstudante(int codigoTurma, char nome[N]) {
     Turma *aux = turmas;
     
-    while(aux != NULL && aux->codigo != codigoturma) {
+    while(aux != NULL && aux->codigo != codigoTurma) {
         aux = aux->prox;
     }
 
@@ -139,16 +138,109 @@ void centralEstudante(Estudante* a) {
     }
 }
 
-void consultarTodasTurmas() {
+void preFixadoEstudante(Estudante* a) {
+    if (a != NULL) {
+        printf("- %s \n", a->nome);
+        preFixadoEstudante(a->esq);
+        preFixadoEstudante(a->dir);
+    }
+}
+
+void exibeTurma(int codigoTurma) {
     Turma *auxT = turmas;
     
-    printf("\n\n--- Lista de Turmas ---\n");
+    while(auxT != NULL && auxT->codigo != codigoTurma) {        
+        auxT = auxT->prox;
+    }
+
+    if (auxT != NULL) {
+        printf("\n\n--- Lista de Estudantes da Turma %d - Ordem Alfabetica ---\n", auxT->codigo);
+    
+        centralEstudante(auxT->estudantes);    
+    }
+    else {
+        printf("Turma %d nao encontrada\n", codigoTurma);
+    }
+    printf("----------------------------------------------------------------------------\n");
+}
+
+void exibeTurmaPre(int codigoTurma) {
+    Turma *auxT = turmas;
+    
+    while(auxT != NULL && auxT->codigo != codigoTurma) {        
+        auxT = auxT->prox;
+    }
+
+    if (auxT != NULL) {
+        printf("\n\n--- Lista de Estudantes da Turma %d - Pre Fixado ---\n", auxT->codigo);
+    
+        preFixadoEstudante(auxT->estudantes);    
+    }
+    else {
+        printf("Turma %d nao encontrada\n", codigoTurma);
+    }
+    printf("----------------------------------------------------------------------------\n");
+}
+
+void contaEstudantes() {
+    Turma *auxT = turmas;
+    
+    printf("\n\n--- Contagem de Estudantes por Turma ---\n");
     while(auxT != NULL) {
-        printf("Cod: %2d Estudantes: %d\n", auxT->codigo, auxT->quantidadeEstudantes);
-        Estudante *auxE = auxT->estudantes;
+        printf("Cod: %2d Total de Estudantes: %d\n", auxT->codigo, auxT->quantidadeEstudantes);
 
-        centralEstudante(auxE);
+        auxT = auxT->prox;
+    }
+    
+    printf("----------------------------------------------------------------------------\n");
+}
 
+void maiorTurma() {
+    Turma *auxT = turmas;
+    int maior = turmas->quantidadeEstudantes;
+    
+    printf("\n\n--- Turma com Mais Estudantes ---\n");
+    while(auxT != NULL) {
+        if (auxT->quantidadeEstudantes > maior) {
+            maior = auxT->quantidadeEstudantes;
+        }
+        
+        auxT = auxT->prox;
+    }
+
+    auxT = turmas;
+
+    while(auxT != NULL) {
+        if (auxT->quantidadeEstudantes == maior) {
+            printf("Maior turma: Cod: %2d Total de Estudantes: %d\n", auxT->codigo, auxT->quantidadeEstudantes);
+        }
+        
+        auxT = auxT->prox;
+    }
+    
+    printf("----------------------------------------------------------------------------\n");
+}
+
+void menorTurma() {
+    Turma *auxT = turmas;
+    int menor = turmas->quantidadeEstudantes;
+    
+    printf("\n\n--- Turma com Menos Estudantes ---\n");
+    while(auxT != NULL) {
+        if (auxT->quantidadeEstudantes < menor) {
+            menor = auxT->quantidadeEstudantes;
+        }
+        
+        auxT = auxT->prox;
+    }
+
+    auxT = turmas;
+
+    while(auxT != NULL) {
+        if (auxT->quantidadeEstudantes == menor) {
+            printf("Menor turma: Cod: %2d Total de Estudantes: %d\n", auxT->codigo, auxT->quantidadeEstudantes);
+        }
+        
         auxT = auxT->prox;
     }
     
@@ -206,5 +298,11 @@ int main() {
     inserirEstudante(105, "Felipe");
     inserirEstudante(105, "Clara");
 
-    consultarTodasTurmas();
+    exibeTurma(103);
+    exibeTurmaPre(103);
+
+    contaEstudantes();
+
+    menorTurma();
+    maiorTurma();
 }
