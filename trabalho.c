@@ -24,8 +24,7 @@
 #define N 30
 
 typedef struct estudante {
-    char nome[50];
-    struct estudante *pai;
+    char nome[N];
     struct estudante *esq;
     struct estudante *dir;
 } Estudante;
@@ -43,7 +42,6 @@ Estudante* novoEstudante(char nome[N]) {
     Estudante *novo = (Estudante*)malloc(sizeof(Estudante));
 
     strcpy(novo->nome, nome);
-    novo->pai = NULL;
     novo->esq = NULL;
     novo->dir = NULL;
 
@@ -80,7 +78,7 @@ void inserirTurma(int codigoTurma) {
             aux = aux->prox;
         }
     
-        if (aux != NULL && aux->codigo == codigoTurma) {
+        if (ant->codigo == codigoTurma || aux != NULL && aux->codigo == codigoTurma) {
             printf("Erro: turma %d ja cadastrada!\n", codigoTurma);
             free(novo);
             return;
@@ -94,21 +92,21 @@ void inserirTurma(int codigoTurma) {
     printf("Turma '%d' cadastrada com sucesso!\n", codigoTurma);
 }
 
-Estudante* inserirEstudanteRecursivo(Estudante* estudantes, char nome[N], Estudante* pai) {
+Estudante* inserirEstudanteRecursivo(Estudante* estudantes, char nome[N]) {
     if (estudantes == NULL) {
         Estudante *novo = novoEstudante(nome);
-        novo->pai = pai;
         return novo;
     }
 
     if (strcmp(nome, estudantes->nome) < 0) {
-        estudantes->esq = inserirEstudanteRecursivo(estudantes->esq, nome, estudantes);
+        estudantes->esq = inserirEstudanteRecursivo(estudantes->esq, nome);
     }
     else if (strcmp(nome, estudantes->nome) > 0) {
-        estudantes->dir = inserirEstudanteRecursivo(estudantes->dir, nome, estudantes);
+        estudantes->dir = inserirEstudanteRecursivo(estudantes->dir, nome);
     }
     else {
         printf("Erro: nome '%s' ja existe nesta turma!\n", nome);
+        return NULL;
     }
 
     return estudantes;
@@ -126,8 +124,12 @@ void inserirEstudante(int codigoTurma, char nome[N]) {
         return;
     }
 
-    aux->estudantes = inserirEstudanteRecursivo(aux->estudantes, nome, NULL);
-    (aux->quantidadeEstudantes)++;
+    Estudante* arvore = inserirEstudanteRecursivo(aux->estudantes, nome);
+
+    if (arvore != NULL) {
+        aux->estudantes = arvore;
+        (aux->quantidadeEstudantes)++;
+    }
 }
 
 void centralEstudante(Estudante* a) {
