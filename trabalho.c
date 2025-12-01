@@ -29,6 +29,12 @@ typedef struct estudante {
     struct estudante *dir;
 } Estudante;
 
+typedef struct listaestudante {
+    char nome[N];
+    int turma;
+    struct listaestudante *prox;
+} ListaEstudante;
+
 typedef struct turma {
     int codigo;
     int quantidadeEstudantes;
@@ -37,6 +43,7 @@ typedef struct turma {
 } Turma;
 
 Turma *turmas = NULL; 
+ListaEstudante *listaEstudantes = NULL;
 
 Estudante* novoEstudante(char nome[N]) {
     Estudante *novo = (Estudante*)malloc(sizeof(Estudante));
@@ -78,7 +85,7 @@ void inserirTurma(int codigoTurma) {
             aux = aux->prox;
         }
     
-        if (ant->codigo == codigoTurma || aux != NULL && aux->codigo == codigoTurma) {
+        if (ant->codigo == codigoTurma || (aux != NULL && aux->codigo == codigoTurma)) {
             printf("Erro: turma %d ja cadastrada!\n", codigoTurma);
             free(novo);
             return;
@@ -132,11 +139,44 @@ void inserirEstudante(int codigoTurma, char nome[N]) {
     }
 }
 
+void inserirListaEstudante(char nome[N], int codigoTurma) {
+    ListaEstudante *novo = (ListaEstudante*)malloc(sizeof(ListaEstudante));
+    strcpy(novo->nome, nome);
+
+    novo->turma = codigoTurma;
+    novo->prox = NULL;
+
+    if (listaEstudantes == NULL || strcmp(nome, listaEstudantes->nome) < 0) {
+        novo->prox = listaEstudantes;
+        listaEstudantes = novo;
+        return;
+    }
+
+    ListaEstudante *ant = listaEstudantes;
+    ListaEstudante *aux = listaEstudantes->prox;
+
+    while (aux != NULL && strcmp(aux->nome, nome) < 0) {
+        ant = aux;
+        aux = aux->prox;
+    }
+
+    ant->prox = novo;
+    novo->prox = aux;
+}
+
 void centralEstudante(Estudante* a) {
     if (a != NULL) {
         centralEstudante(a->esq);
         printf("- %s \n", a->nome);
         centralEstudante(a->dir);
+    }
+}
+
+void preencherListaEstudantes(Estudante *a, int codigoTurma) {
+    if (a != NULL) {
+        preencherListaEstudantes(a->esq, codigoTurma);
+        inserirListaEstudante(a->nome, codigoTurma);
+        preencherListaEstudantes(a->dir, codigoTurma);
     }
 }
 
@@ -249,13 +289,48 @@ void menorTurma() {
     printf("----------------------------------------------------------------------------\n");
 }
 
-void inicializar () {
-    turmas = NULL;
+void exibeTodosEstudantes() {
+    listaEstudantes = NULL;
+    Turma *auxT = turmas;
+
+    while (auxT != NULL) {
+        preencherListaEstudantes(auxT->estudantes, auxT->codigo);
+        auxT = auxT->prox;
+    }
+
+    printf("\n\n--- TODOS OS ESTUDANTES (ALFABÉTICO) ---\n");
+
+    ListaEstudante *aux = listaEstudantes;
+
+    while (aux != NULL) {
+        printf("(Turma %d) %s\n", aux->turma, aux->nome);
+        aux = aux->prox;
+    }
+}
+
+void nomesRepetidos() {
+    if (listaEstudantes == NULL) {
+        printf("\nNenhum estudante cadastrado.\n");
+        return;
+    }
+
+    printf("\n--- NOMES REPETIDOS ---\n");
+
+    ListaEstudante *auxAE = listaEstudantes;
+
+    while (auxAE != NULL && auxAE->prox != NULL) {
+        if (strcmp(auxAE->nome, auxAE->prox->nome) == 0) {
+            printf("%s\n", auxAE->nome);
+
+            while (auxAE->prox != NULL && strcmp(auxAE->nome, auxAE->prox->nome) == 0) {
+                auxAE = auxAE->prox;
+            }
+        }
+        auxAE = auxAE->prox;
+    }
 }
 
 int main() {
-    inicializar();
-
     inserirTurma(103);
     inserirTurma(201);
     inserirTurma(305);
@@ -300,11 +375,14 @@ int main() {
     inserirEstudante(105, "Felipe");
     inserirEstudante(105, "Clara");
 
-    exibeTurma(103);
-    exibeTurmaPre(103);
+    //exibeTurma(103);
+    //exibeTurmaPre(103);
 
-    contaEstudantes();
+    //contaEstudantes();
 
-    menorTurma();
-    maiorTurma();
+    //menorTurma();
+    //maiorTurma();
+
+    exibeTodosEstudantes();
+    nomesRepetidos();
 }
