@@ -346,6 +346,84 @@ void nomesRepetidos() {
     }
 }
 
+void removerEstudante(char nome[N], int codigoTurma) {
+    Turma* auxT = turmas;
+
+    while(auxT != NULL && auxT->codigo != codigoTurma) {
+        auxT = auxT->prox;
+    } 
+
+    if (auxT == NULL) {
+        printf("Turma nao encontrada!\n");
+        return;
+    }
+
+    Estudante* auxE = auxT->estudantes;
+    Estudante* auxPai = NULL;
+    int lado = 0; // 0 => esquerda 1 => direita
+
+    while (auxE != NULL && strcmp(nome, auxE->nome) != 0)
+    {
+        auxPai = auxE;
+        if (strcmp(nome, auxE->nome) < 0) {
+            auxE = auxE->esq;
+            lado = 0;
+        }
+        else {
+            auxE = auxE->dir;
+            lado = 1;
+        }
+    }
+
+    if (auxE == NULL) {
+        printf("Estudante nao encontrado!\n");
+        return;
+    }
+
+    // Exclui uma folha
+    if (auxE->esq == NULL && auxE->dir == NULL) {
+        free(auxE);
+        if (auxPai != NULL && !lado) auxPai->esq = NULL;
+        if (auxPai != NULL && lado) auxPai->dir = NULL;
+    }
+    // Exclui nodo com um filho a direita
+    else if (auxE->esq == NULL && auxE->dir != NULL) {
+        if (auxPai != NULL && !lado) auxPai->esq = auxE->dir;
+        else if (auxPai != NULL && lado) auxPai->dir = auxE->dir;
+        else auxT->estudantes = auxE->dir;
+
+        free(auxE);
+    }
+    // Exclui nodo com um filho a esquerda
+    else if (auxE->esq != NULL && auxE->dir == NULL) {
+        if (auxPai != NULL && !lado) auxPai->esq = auxE->esq;
+        else if (auxPai != NULL && lado) auxPai->dir = auxE->esq;
+        else auxT->estudantes = auxE->esq;
+
+        free(auxE);
+    }
+    else {
+        Estudante* maior = auxE->esq;
+
+        while (maior->dir != NULL) {
+            maior = maior->dir;
+        }
+        
+        if (auxPai != NULL && !lado) auxPai->esq = maior;
+        else if (auxPai != NULL && lado) auxPai->dir = maior;
+        else auxT->estudantes = maior;
+
+        while(maior->dir != NULL) {
+            maior = maior->dir;
+        }
+
+        maior->dir = auxE->dir;
+
+        free(auxE);
+    }
+
+}
+
 int main() {
     inserirTurma(103);
     inserirTurma(201);
@@ -390,16 +468,24 @@ int main() {
     inserirEstudante(105, "Vinicius");
     inserirEstudante(105, "Felipe");
     inserirEstudante(105, "Clara");
+    inserirEstudante(105, "Faustao");
+    inserirEstudante(105, "Flora");
 
     //exibeTurma(103, 1);
     //exibeTurma(103, 2);
     //exibeTurmaPre(103);
 
-    contaEstudantes();
+    //contaEstudantes();
 
-    menorTurma();
-    maiorTurma();
+    //menorTurma();
+    //maiorTurma();
 
     //exibeTodosEstudantes();
     //nomesRepetidos();
+
+    exibeTurma(105, 1);
+    removerEstudante("Lucas", 105);
+    exibeTurma(105, 1);
+    inserirEstudante(105, "Lucas");
+    exibeTurma(105, 1);
 }
