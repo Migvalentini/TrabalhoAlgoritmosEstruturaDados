@@ -6,8 +6,8 @@
 //- OK - CONTA ESTUDANTES: mostra cada turma com o número total de estudantes de cada turma.
 //- OK - EXIBE TURMA: exibe a lista dos nomes dos estudantes de uma turma em ordem alfabética (de A a Z) ou em ordem alfabética inversa (de Z a A).
 //- OK - EXIBE TURMA PRÉ: exibe a lista dos nomes dos estudantes de uma turma em ordem pré-fixada pela esquerda.
-//- EXIBE TODOS ESTUDANTES: exibe uma lista única, com o nome de todos os estudantes de todas as turmas, em ordem alfabética (colocar a turma ao lado de cada nome)
-//- NOMES REPETIDOS: exibe os nomes repetidos mais de uma vez (entre as turmas)
+//- OK - EXIBE TODOS ESTUDANTES: exibe uma lista única, com o nome de todos os estudantes de todas as turmas, em ordem alfabética (colocar a turma ao lado de cada nome)
+//- OK - NOMES REPETIDOS: exibe os nomes repetidos mais de uma vez (entre as turmas)
 //- OK - MAIOR TURMA: exibe a turma com maior número de estudantes: número da turma e quantidade de estudantes. Se houver igualdade, exibir todas as turmas com esse maior número
 //- OK - MENOR TURMA: exibe a turma com menor número de estudantes: número da turma e quantidade de estudantes. Se houver igualdade, exibir todas as turmas com esse menor número
 
@@ -164,11 +164,19 @@ void inserirListaEstudante(char nome[N], int codigoTurma) {
     novo->prox = aux;
 }
 
-void centralEstudante(Estudante* a) {
+void centralEstudanteAlfabetico(Estudante* a) {
     if (a != NULL) {
-        centralEstudante(a->esq);
+        centralEstudanteAlfabetico(a->esq);
         printf("- %s \n", a->nome);
-        centralEstudante(a->dir);
+        centralEstudanteAlfabetico(a->dir);
+    }
+}
+
+void centralEstudanteInverso(Estudante* a) {
+    if (a != NULL) {
+        centralEstudanteInverso(a->dir);
+        printf("- %s \n", a->nome);
+        centralEstudanteInverso(a->esq);
     }
 }
 
@@ -188,7 +196,7 @@ void preFixadoEstudante(Estudante* a) {
     }
 }
 
-void exibeTurma(int codigoTurma) {
+void exibeTurma(int codigoTurma, int ordenacao) {
     Turma *auxT = turmas;
     
     while(auxT != NULL && auxT->codigo != codigoTurma) {        
@@ -196,9 +204,14 @@ void exibeTurma(int codigoTurma) {
     }
 
     if (auxT != NULL) {
-        printf("\n\n--- Lista de Estudantes da Turma %d - Ordem Alfabetica ---\n", auxT->codigo);
-    
-        centralEstudante(auxT->estudantes);    
+        if (ordenacao == 1) {
+            printf("\n\n--- Lista de Estudantes da Turma %d - Ordem Alfabetica ---\n", auxT->codigo);
+            centralEstudanteAlfabetico(auxT->estudantes);    
+        }
+        else if (ordenacao == 2) {
+            printf("\n\n--- Lista de Estudantes da Turma %d - Ordem Alfabetica Inversa ---\n", auxT->codigo);
+            centralEstudanteInverso(auxT->estudantes);   
+        }
     }
     else {
         printf("Turma %d nao encontrada\n", codigoTurma);
@@ -229,7 +242,7 @@ void contaEstudantes() {
     
     printf("\n\n--- Contagem de Estudantes por Turma ---\n");
     while(auxT != NULL) {
-        printf("Cod: %2d Total de Estudantes: %d\n", auxT->codigo, auxT->quantidadeEstudantes);
+        printf("Codigo: %2d - Total de Estudantes: %d\n", auxT->codigo, auxT->quantidadeEstudantes);
 
         auxT = auxT->prox;
     }
@@ -298,35 +311,38 @@ void exibeTodosEstudantes() {
         auxT = auxT->prox;
     }
 
-    printf("\n\n--- TODOS OS ESTUDANTES (ALFABÉTICO) ---\n");
+    printf("\n\n--- TODOS OS ESTUDANTES (ALFABETICO) ---\n");
 
-    ListaEstudante *aux = listaEstudantes;
+    ListaEstudante *auxLE = listaEstudantes;
 
-    while (aux != NULL) {
-        printf("(Turma %d) %s\n", aux->turma, aux->nome);
-        aux = aux->prox;
+    while (auxLE != NULL) {
+        printf("(Turma %d) %s\n", auxLE->turma, auxLE->nome);
+        auxLE = auxLE->prox;
     }
 }
 
 void nomesRepetidos() {
-    if (listaEstudantes == NULL) {
-        printf("\nNenhum estudante cadastrado.\n");
-        return;
+    listaEstudantes = NULL;
+    Turma *auxT = turmas;
+
+    while (auxT != NULL) {
+        preencherListaEstudantes(auxT->estudantes, auxT->codigo);
+        auxT = auxT->prox;
     }
 
     printf("\n--- NOMES REPETIDOS ---\n");
 
-    ListaEstudante *auxAE = listaEstudantes;
+    ListaEstudante *auxLE = listaEstudantes;
 
-    while (auxAE != NULL && auxAE->prox != NULL) {
-        if (strcmp(auxAE->nome, auxAE->prox->nome) == 0) {
-            printf("%s\n", auxAE->nome);
+    while (auxLE != NULL && auxLE->prox != NULL) {
+        if (strcmp(auxLE->nome, auxLE->prox->nome) == 0) {
+            printf("%s\n", auxLE->nome);
 
-            while (auxAE->prox != NULL && strcmp(auxAE->nome, auxAE->prox->nome) == 0) {
-                auxAE = auxAE->prox;
+            while (auxLE->prox != NULL && strcmp(auxLE->nome, auxLE->prox->nome) == 0) {
+                auxLE = auxLE->prox;
             }
         }
-        auxAE = auxAE->prox;
+        auxLE = auxLE->prox;
     }
 }
 
@@ -375,14 +391,15 @@ int main() {
     inserirEstudante(105, "Felipe");
     inserirEstudante(105, "Clara");
 
-    //exibeTurma(103);
+    //exibeTurma(103, 1);
+    //exibeTurma(103, 2);
     //exibeTurmaPre(103);
 
-    //contaEstudantes();
+    contaEstudantes();
 
-    //menorTurma();
-    //maiorTurma();
+    menorTurma();
+    maiorTurma();
 
-    exibeTodosEstudantes();
-    nomesRepetidos();
+    //exibeTodosEstudantes();
+    //nomesRepetidos();
 }
