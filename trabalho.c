@@ -346,7 +346,7 @@ void nomesRepetidos() {
     }
 }
 
-void removerEstudante(char nome[N], int codigoTurma) {
+void removerEstudante(int codigoTurma, char nome[N]) {
     Turma* auxT = turmas;
 
     while(auxT != NULL && auxT->codigo != codigoTurma) {
@@ -484,7 +484,7 @@ int main() {
     //nomesRepetidos();
 
     exibeTurma(105, 1);
-    removerEstudante("Lucas", 105);
+    removerEstudante(105, "Lucas");
     exibeTurma(105, 1);
     inserirEstudante(105, "Lucas");
     exibeTurma(105, 1);
