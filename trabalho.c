@@ -99,21 +99,22 @@ void inserirTurma(int codigoTurma) {
     printf("Turma '%d' cadastrada com sucesso!\n", codigoTurma);
 }
 
-Estudante* inserirEstudanteRecursivo(Estudante* estudantes, char nome[N]) {
+Estudante* inserirEstudanteRecursivo(Estudante* estudantes, char nome[N], int* inseriu) {
     if (estudantes == NULL) {
+        *inseriu = 1;
         Estudante *novo = novoEstudante(nome);
         return novo;
     }
 
     if (strcmp(nome, estudantes->nome) < 0) {
-        estudantes->esq = inserirEstudanteRecursivo(estudantes->esq, nome);
+        estudantes->esq = inserirEstudanteRecursivo(estudantes->esq, nome, inseriu);
     }
     else if (strcmp(nome, estudantes->nome) > 0) {
-        estudantes->dir = inserirEstudanteRecursivo(estudantes->dir, nome);
+        estudantes->dir = inserirEstudanteRecursivo(estudantes->dir, nome, inseriu);
     }
     else {
         printf("Erro: nome '%s' ja existe nesta turma!\n", nome);
-        return NULL;
+        *inseriu = 0;
     }
 
     return estudantes;
@@ -131,10 +132,10 @@ void inserirEstudante(int codigoTurma, char nome[N]) {
         return;
     }
 
-    Estudante* arvore = inserirEstudanteRecursivo(aux->estudantes, nome);
+    int inseriu;
+    aux->estudantes = inserirEstudanteRecursivo(aux->estudantes, nome, &inseriu);
 
-    if (arvore != NULL) {
-        aux->estudantes = arvore;
+    if (inseriu) {
         (aux->quantidadeEstudantes)++;
     }
 }
@@ -205,11 +206,11 @@ void exibeTurma(int codigoTurma, int ordenacao) {
 
     if (auxT != NULL) {
         if (ordenacao == 1) {
-            printf("\n\n--- Lista de Estudantes da Turma %d - Ordem Alfabetica ---\n", auxT->codigo);
+            printf("\n--- Lista de Estudantes da Turma %d - Ordem Alfabetica ---\n", auxT->codigo);
             centralEstudanteAlfabetico(auxT->estudantes);    
         }
         else if (ordenacao == 2) {
-            printf("\n\n--- Lista de Estudantes da Turma %d - Ordem Alfabetica Inversa ---\n", auxT->codigo);
+            printf("\n--- Lista de Estudantes da Turma %d - Ordem Alfabetica Inversa ---\n", auxT->codigo);
             centralEstudanteInverso(auxT->estudantes);   
         }
     }
@@ -384,7 +385,8 @@ void removerEstudante(int codigoTurma, char nome[N]) {
     if (auxE->esq == NULL && auxE->dir == NULL) {
         free(auxE);
         if (auxPai != NULL && !lado) auxPai->esq = NULL;
-        if (auxPai != NULL && lado) auxPai->dir = NULL;
+        else if (auxPai != NULL && lado) auxPai->dir = NULL;
+        else auxT->estudantes = NULL;
     }
     // Exclui nodo com um filho a direita
     else if (auxE->esq == NULL && auxE->dir != NULL) {
@@ -404,24 +406,83 @@ void removerEstudante(int codigoTurma, char nome[N]) {
     }
     else {
         Estudante* maior = auxE->esq;
+        Estudante* maiorPai = auxE;
+        int flag = 0;
 
         while (maior->dir != NULL) {
+            maiorPai = maior;
             maior = maior->dir;
+            flag = 1;
         }
         
         if (auxPai != NULL && !lado) auxPai->esq = maior;
         else if (auxPai != NULL && lado) auxPai->dir = maior;
         else auxT->estudantes = maior;
 
-        while(maior->dir != NULL) {
-            maior = maior->dir;
-        }
-
         maior->dir = auxE->dir;
+        if(flag) {
+            maior->esq = auxE->esq;
+            maiorPai->dir = NULL;
+        }
+        else {
+            maiorPai->esq = NULL;
+        }
 
         free(auxE);
     }
 
+}
+
+void removerTodosEstudantesTurma(Estudante* estudante, int codigoTurma) {
+    if (estudante != NULL) {
+        removerTodosEstudantesTurma(estudante->esq, codigoTurma);
+        removerTodosEstudantesTurma(estudante->dir, codigoTurma);
+
+        removerEstudante(codigoTurma, estudante->nome);
+    }
+} 
+
+void removerTurma(int codigoTurma) {
+    Turma* auxT = turmas;
+    Turma* ant = NULL;
+
+    while (auxT != NULL && auxT->codigo != codigoTurma) {
+        ant = auxT;
+        auxT = auxT->prox;
+    }
+
+    if (auxT == NULL) {
+        printf("Turma nao encontrada!\n");
+        return;
+    }
+
+    Estudante* auxE = auxT->estudantes;
+    removerTodosEstudantesTurma(auxE, codigoTurma);
+
+    if (ant == NULL && auxT->prox == NULL) {
+        turmas = NULL;
+        free(auxT);
+    }
+    else if (ant == NULL) {
+        turmas = turmas->prox;
+        free(auxT);
+    }
+    else {
+        ant->prox = auxT->prox;
+        free(auxT);
+    }
+}
+
+void exibirTurmas() {
+    Turma *auxT = turmas;
+
+    printf("\n---- Lista de Turmas ----\n");
+
+    while(auxT != NULL) {
+        exibeTurma(auxT->codigo, 1);
+
+        auxT = auxT->prox;
+    }
 }
 
 int main() {
@@ -480,12 +541,15 @@ int main() {
     //menorTurma();
     //maiorTurma();
 
-    //exibeTodosEstudantes();
+    exibirTurmas();
+    removerTurma(105);
+    exibirTurmas();
+
     //nomesRepetidos();
 
-    exibeTurma(105, 1);
-    removerEstudante(105, "Lucas");
-    exibeTurma(105, 1);
-    inserirEstudante(105, "Lucas");
-    exibeTurma(105, 1);
+    //exibeTurma(103, 1);
+    //removerEstudante(103, "Clarice");
+    //exibeTurma(103, 1);
+    //inserirEstudante(103, "Clarice");
+    //exibeTurma(103, 1);
 }
