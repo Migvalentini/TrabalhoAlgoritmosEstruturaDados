@@ -1,23 +1,3 @@
-//- OK - INSERE TURMA: permite a inserção de uma turma na lista de turmas, de forma ordenada. Não pode ter número de turma repetido.
-//- OK - INSERE ESTUDANTE: permite a inserção de um estudante em uma das turmas, desde que a turma já exista. 
-//Não pode haver nomes repetidos de estudantes na mesma turma, e entre as turmas, se houver nome repetido, caracterizar o nome de cada estudante como pertencente a uma turma específica
-//- REMOVE TURMA: remove uma turma, removendo também todos os estudantes associados a ela
-//- REMOVE ESTUDANTE: remove um estudante de uma turma específica (remove o nodo com o nome do estudante), mantendo a ABP na qual ele estava situado ordenada.
-//- OK - CONTA ESTUDANTES: mostra cada turma com o número total de estudantes de cada turma.
-//- OK - EXIBE TURMA: exibe a lista dos nomes dos estudantes de uma turma em ordem alfabética (de A a Z) ou em ordem alfabética inversa (de Z a A).
-//- OK - EXIBE TURMA PRÉ: exibe a lista dos nomes dos estudantes de uma turma em ordem pré-fixada pela esquerda.
-//- OK - EXIBE TODOS ESTUDANTES: exibe uma lista única, com o nome de todos os estudantes de todas as turmas, em ordem alfabética (colocar a turma ao lado de cada nome)
-//- OK - NOMES REPETIDOS: exibe os nomes repetidos mais de uma vez (entre as turmas)
-//- OK - MAIOR TURMA: exibe a turma com maior número de estudantes: número da turma e quantidade de estudantes. Se houver igualdade, exibir todas as turmas com esse maior número
-//- OK - MENOR TURMA: exibe a turma com menor número de estudantes: número da turma e quantidade de estudantes. Se houver igualdade, exibir todas as turmas com esse menor número
-
-//Turmas/estudantes a serem incluídos inicialmente: 
-//103: joao, ana, mauro, clarice, luiz, samuel, diego
-//201: carlos, maria, beatriz, lucas, vitor, denise
-//305: maria, eduardo, paulo, cintia, marisa, alvaro, sandra
-//202: patricia, anelise, douglas, diego, marcos, vania
-//105: eduardo, lucas, maria, vinicius, felipe, clara
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -136,6 +116,7 @@ void inserirEstudante(int codigoTurma, char nome[N]) {
     aux->estudantes = inserirEstudanteRecursivo(aux->estudantes, nome, &inseriu);
 
     if (inseriu) {
+        printf("Estudante '%s' incluido com sucesso na turma %d!\n", nome, codigoTurma);
         (aux->quantidadeEstudantes)++;
     }
 }
@@ -168,7 +149,7 @@ void inserirListaEstudante(char nome[N], int codigoTurma) {
 void centralEstudanteAlfabetico(Estudante* a) {
     if (a != NULL) {
         centralEstudanteAlfabetico(a->esq);
-        printf("- %s \n", a->nome);
+        printf("- %s ", a->nome);
         centralEstudanteAlfabetico(a->dir);
     }
 }
@@ -217,7 +198,7 @@ void exibeTurma(int codigoTurma, int ordenacao) {
     else {
         printf("Turma %d nao encontrada\n", codigoTurma);
     }
-    printf("----------------------------------------------------------------------------\n");
+    printf("\n----------------------------------------------------------------------------\n");
 }
 
 void exibeTurmaPre(int codigoTurma) {
@@ -431,16 +412,19 @@ void removerEstudante(int codigoTurma, char nome[N]) {
         free(auxE);
     }
 
+    (auxT->quantidadeEstudantes)--;
+    printf("Estudante '%s' removido da Turma %d com sucesso.\n", nome, codigoTurma);
 }
 
-void removerTodosEstudantesTurma(Estudante* estudante, int codigoTurma) {
+Estudante* removerTodosEstudantesTurma(Estudante* estudante) {
     if (estudante != NULL) {
-        removerTodosEstudantesTurma(estudante->esq, codigoTurma);
-        removerTodosEstudantesTurma(estudante->dir, codigoTurma);
-
-        removerEstudante(codigoTurma, estudante->nome);
+        estudante->esq = removerTodosEstudantesTurma(estudante->esq);
+        estudante->dir = removerTodosEstudantesTurma(estudante->dir);
+        free(estudante);
     }
-} 
+    
+    return NULL;
+}
 
 void removerTurma(int codigoTurma) {
     Turma* auxT = turmas;
@@ -456,8 +440,8 @@ void removerTurma(int codigoTurma) {
         return;
     }
 
-    Estudante* auxE = auxT->estudantes;
-    removerTodosEstudantesTurma(auxE, codigoTurma);
+    auxT->estudantes = removerTodosEstudantesTurma(auxT->estudantes); 
+    auxT->quantidadeEstudantes = 0;
 
     if (ant == NULL && auxT->prox == NULL) {
         turmas = NULL;
@@ -476,7 +460,7 @@ void removerTurma(int codigoTurma) {
 void exibirTurmas() {
     Turma *auxT = turmas;
 
-    printf("\n---- Lista de Turmas ----\n");
+    printf("\n---- LISTA DE TURMAS ----\n");
 
     while(auxT != NULL) {
         exibeTurma(auxT->codigo, 1);
@@ -529,8 +513,6 @@ int main() {
     inserirEstudante(105, "Vinicius");
     inserirEstudante(105, "Felipe");
     inserirEstudante(105, "Clara");
-    inserirEstudante(105, "Faustao");
-    inserirEstudante(105, "Flora");
 
     //exibeTurma(103, 1);
     //exibeTurma(103, 2);
@@ -541,15 +523,15 @@ int main() {
     //menorTurma();
     //maiorTurma();
 
-    exibirTurmas();
-    removerTurma(105);
-    exibirTurmas();
+    //exibirTurmas();
+    //removerTurma(103);
+    //exibirTurmas();
 
+    //exibeTodosEstudantes();
     //nomesRepetidos();
 
-    //exibeTurma(103, 1);
-    //removerEstudante(103, "Clarice");
-    //exibeTurma(103, 1);
-    //inserirEstudante(103, "Clarice");
-    //exibeTurma(103, 1);
-}
+    //exibeTurma(305, 1);
+    //removerEstudante(305, "Eduardo");
+    //exibeTurma(305, 1);
+    //inserirEstudante(305, "Eduardo");
+    //exibeTurma(305, 1);
