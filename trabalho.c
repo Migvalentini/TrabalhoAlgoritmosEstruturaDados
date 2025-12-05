@@ -361,6 +361,9 @@ void removerEstudante(int codigoTurma, char nome[N]) {
         printf("Estudante nao encontrado!\n");
         return;
     }
+    
+    char nomeRemovido[N];
+    strcpy(nomeRemovido, nome);
 
     // Exclui uma folha
     if (auxE->esq == NULL && auxE->dir == NULL) {
@@ -413,18 +416,17 @@ void removerEstudante(int codigoTurma, char nome[N]) {
     }
 
     (auxT->quantidadeEstudantes)--;
-    printf("Estudante '%s' removido da Turma %d com sucesso.\n", nome, codigoTurma);
+    printf("Estudante '%s' removido da Turma %d com sucesso.\n", nomeRemovido, codigoTurma);
 }
 
-Estudante* removerTodosEstudantesTurma(Estudante* estudante) {
+void removerTodosEstudantesTurma(Estudante* estudante, int codigoTurma) {
     if (estudante != NULL) {
-        estudante->esq = removerTodosEstudantesTurma(estudante->esq);
-        estudante->dir = removerTodosEstudantesTurma(estudante->dir);
-        free(estudante);
+        removerTodosEstudantesTurma(estudante->esq, codigoTurma);
+        removerTodosEstudantesTurma(estudante->dir, codigoTurma);
+
+        removerEstudante(codigoTurma, estudante->nome);
     }
-    
-    return NULL;
-}
+} 
 
 void removerTurma(int codigoTurma) {
     Turma* auxT = turmas;
@@ -440,8 +442,7 @@ void removerTurma(int codigoTurma) {
         return;
     }
 
-    auxT->estudantes = removerTodosEstudantesTurma(auxT->estudantes); 
-    auxT->quantidadeEstudantes = 0;
+    removerTodosEstudantesTurma(auxT->estudantes, codigoTurma);
 
     if (ant == NULL && auxT->prox == NULL) {
         turmas = NULL;
@@ -535,3 +536,4 @@ int main() {
     //exibeTurma(305, 1);
     //inserirEstudante(305, "Eduardo");
     //exibeTurma(305, 1);
+}
